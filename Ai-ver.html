@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EUC Almaty - Electric Unicycle Community</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-blue: #00d4ff;
+            --accent-lime: #a8ff00;
+            --accent-orange: #ff6b35;
+            --dark-bg: #0a0a0a;
+            --light-bg: #f8f9fa;
+            --card-dark: #1a1a1a;
+            --card-light: #ffffff;
+            --text-dark: #333333;
+            --text-light: #ffffff;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="light"] {
+            --bg-color: var(--light-bg);
+            --card-bg: var(--card-light);
+            --text-color: var(--text-dark);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: var(--dark-bg);
+            --card-bg: var(--card-dark);
+            --text-color: var(--text-light);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: var(--transition);
+            overflow-x: hidden;
+        }
+
+        /* Header & Navigation */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(var(--card-bg), 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            transition: var(--transition);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-lime));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-color);
+            font-weight: 500;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-blue);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-blue);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: 2px solid var(--primary-blue);
+            color: var(--primary-blue);
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 1.2rem;
+        }
+
+        .theme-toggle:hover {
+            background: var(--primary-blue);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .mobile-menu {
+            display: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.3)),
+                        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080"><rect fill="%230a0a0a" width="1920" height="1080"/><path fill="%2300d4ff" opacity="0.1" d="M0 540L80 520C160 500 320 460 480 470C640 480 800 540 960 560C1120 580 1280 560 1440 540C1600 520 1760 500 1840 490L1920 480V1080H1840C1760 1080 1600 1080 1440 1080C1280 1080 1120 1080 960 1080C800 1080 640 1080 480 1080C320 1080 160 1080 80 1080H0V540Z"/></svg>') center/cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            z-index: 2;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .hero p {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .cta-button {
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .cta-primary {
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-lime));
+            color: white;
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .cta-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Floating Elements */
+        .floating-icon {
+            position: absolute;
+            font-size: 3rem;
+            opacity: 0.1;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .floating-icon:nth-child(1) { top: 20%; left: 10%; animation-delay: 0s; }
+        .floating-icon:nth-child(2) { top: 60%; right: 15%; animation-delay: 2s; }
+        .floating-icon:nth-child(3) { bottom: 20%; left: 20%; animation-delay: 4s; }
+
+        /* Sections */
+        section {
+            padding: 5rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-blue), var(--accent-lime));
+            border-radius: 2px;
+        }
+
+        /* Quick Links */
+        .quick-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .link-card {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            text-align: center;
+        }
+
+        .link-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .link-card i {
+            font-size: 3rem;
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-lime));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .link-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Testimonials */
+        .testimonials {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .testimonial-card {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .testimonial-card::before {
+            content: '"';
+            position: absolute;
+            top: -20px;
+            right: 20px;
+            font-size: 5rem;
+            color: var(--primary-blue);
+            opacity: 0.2;
+        }
+
+        .testimonial-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-lime));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        /* Map Section */
+        #map-section {
+            background: var(--card-bg);
+            border-radius: 30px;
+            padding: 2rem;
+            margin: 3rem 5%;
+            box-shadow: var(--shadow);
+        }
+
+        #map {
+            height: 500px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .map-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .map-filter {
+            padding: 0.5rem 1rem;
+            border: 2px solid var(--primary-blue);
+            background: transparent;
+            color: var(--text-color);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .map-filter:hover,
+        .map-filter.active {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--card-bg);
+            padding: 3rem 5%;
+            margin-top: 5rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer-section h3 {
+            margin-bottom: 1rem;
+            color: var(--primary-blue);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .social-links a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--primary-blue);
+            color: white;
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .social-links a:hover {
+            transform: scale(1.1);
+            background: var(--accent-lime);
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background: var(--card-bg);
+                flex-direction: column;
+                padding: 2rem;
+                box-shadow: var(--shadow);
+                gap: 1rem;
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .mobile-menu {
+                display: block;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1.2rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            section {
+                padding: 3rem 5%;
+            }
+
+            #map {
+                height: 300px;
+            }
+        }
+
+        /* Scroll animations */
+        .scroll-animate {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: var(--transition);
+        }
+
+        .scroll-animate.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body data-theme="dark">
+    <!-- Header -->
+    <header>
+        <nav>
+            <div class="logo">
+                <i class="fas fa-circle-notch"></i>
+                EUC Almaty
+            </div>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#map-section">Map</a></li>
+                <li><a href="#learn">How to Learn</a></li>
+                <li><a href="#community">Community</a></li>
+                <li><button class="theme-toggle" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                </button></li>
+            </ul>
+            <div class="mobile-menu" id="mobileMenu">
+                <i class="fas fa-bars"></i>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="floating-icon">
+            <i class="fas fa-bolt"></i>
+        </div>
+        <div class="floating-icon">
+            <i class="fas fa-route"></i>
+        </div>
+        <div class="floating-icon">
+            <i class="fas fa-mountain"></i>
+        </div>
+        <div class="hero-content">
+            <h1>Ride Almaty Freely</h1>
+            <p>Join Kazakhstan's first electric unicycle community</p>
+            <div class="cta-buttons">
+                <a href="#map-section" class="cta-button cta-primary">
+                    <i class="fas fa-map-marked-alt"></i>
+                    Find Places to Ride
+                </a>
+                <a href="#learn" class="cta-button cta-secondary">
+                    <i class="fas fa-graduation-cap"></i>
+                    Learn to Ride
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Links Section -->
+    <section class="scroll-animate">
+        <h2 class="section-title">Start Your Journey</h2>
+        <div class="quick-links">
+            <div class="link-card">
+                <i class="fas fa-map-marked-alt"></i>
+                <h3>Explore Riding Spots</h3>
+                <p>Discover the best places to ride in Almaty with our interactive map featuring charging stations and scenic routes.</p>
+            </div>
+            <div class="link-card">
+                <i class="fas fa-charging-station"></i>
+                <h3>Find Charging Points</h3>
+                <p>Never run out of power! Locate all charging stations around the city with real-time availability.</p>
+            </div>
+            <div class="link-card">
+                <i class="fas fa-users"></i>
+                <h3>Join Group Rides</h3>
+                <p>Meet fellow riders and join our weekly group rides through Almaty's beautiful parks and boulevards.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Map Section -->
+    <section id="map-section" class="scroll-animate">
+        <h2 class="section-title">EUC Spots in Almaty</h2>
+        <div class="map-controls">
+            <button class="map-filter active" data-filter="all">All Spots</button>
+            <button class="map-filter" data-filter="charging">Charging Stations</button>
+            <button class="map-filter" data-filter="scenic">Scenic Routes</button>
+            <button class="map-filter" data-filter="meetup">Meetup Points</button>
+        </div>
+        <div id="map"></div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="scroll-animate">
+        <h2 class="section-title">Community Stories</h2>
+        <div class="testimonials">
+            <div class="testimonial-card">
+                <div class="testimonial-header">
+                    <div class="avatar">A</div>
+                    <div>
+                        <h4>Askhat</h4>
+                        <p>Rider since 2022</p>
+                    </div>
+                </div>
+                <p>"EUC Almaty changed my daily commute! I can now get to work in 15 minutes instead of 45. The community is amazing and always ready to help beginners."</p>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-header">
+                    <div class="avatar">D</div>
+                    <div>
+                        <h4>Dana</h4>
+                        <p>Rider since 2023</p>
+                    </div>
+                </div>
+                <p>"I was scared at first, but the group's support made learning so much fun! Now I ride every weekend with new friends. The feeling of freedom is incredible!"</p>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-header">
+                    <div class="avatar">R</div>
+                    <div>
+                        <h4>Ruslan</h4>
+                        <p>Rider since 2021</p>
+                    </div>
+                </div>
+                <p>"From the first day, I felt welcomed. We explore new routes together, share tips, and even organize charity rides. It's more than riding - it's family!"</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Contact Us</h3>
+                <p><i class="fas fa-envelope"></i> hello@eucalmaty.kz</p>
+                <p><i class="fas fa-phone"></i> +7 777 123 4567</p>
+                <p><i class="fas fa-map-marker-alt"></i> Almaty, Kazakhstan</p>
+            </div>
+            <div class="footer-section">
+                <h3>Follow Us</h3>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-telegram"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                    <a href="#"><i class="fab fa-discord"></i></a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <p><a href="#learn" style="color: var(--text-color); text-decoration: none;">Learning Guide</a></p>
+                <p><a href="#community" style="color: var(--text-color); text-decoration: none;">Community Events</a></p>
+                <p><a href="#map-section" style="color: var(--text-color); text-decoration: none;">Riding Spots</a></p>
+            </div>
+            <div class="footer-section">
+                <h3>Join Our Community</h3>
+                <p>Be part of the fastest growing EUC community in Central Asia!</p>
+                <button class="cta-button cta-primary" style="margin-top: 1rem;">
+                    <i class="fab fa-telegram"></i>
+                    Join Telegram
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Theme Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+        const icon = themeToggle.querySelector('i');
+
+        themeToggle.addEventListener('click', () => {
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.setAttribute('data-theme', 'light');
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+            }
+        });
+
+        // Mobile Menu
+        const mobileMenu = document.getElementById('mobileMenu');
+        const navLinks = document.getElementById('navLinks');
+
+        mobileMenu.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            const bars = mobileMenu.querySelector('i');
+            if (navLinks.classList.contains('active')) {
+                bars.classList.remove('fa-bars');
+                bars.classList.add('fa-times');
+            } else {
+                bars.classList.remove('fa-times');
+                bars.classList.add('fa-bars');
+            }
+        });
+
+        // Smooth Scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                    navLinks.classList.remove('active');
+                    mobileMenu.querySelector('i').classList.remove('fa-times');
+                    mobileMenu.querySelector('i').classList.add('fa-bars');
+                }
+            });
+        });
+
+        // Scroll Animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.scroll-animate').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Map Initialization
+        const map = L.map('map').setView([43.2389, 76.8897], 12);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Custom Icons
+        const chargingIcon = L.divIcon({
+            html: '<i class="fas fa-charging-station" style="color: #00d4ff; font-size: 24px;"></i>',
+            iconSize: [30, 30],
+            className: 'custom-div-icon'
+        });
+
+        const scenicIcon = L.divIcon({
+            html: '<i class="fas fa-route" style="color: #a8ff00; font-size: 24px;"></i>',
+            iconSize: [30, 30],
+            className: 'custom-div-icon'
+        });
+
+        const meetupIcon = L.divIcon({
+            html: '<i class="fas fa-users" style="color: #ff6b35; font-size: 24px;"></i>',
+            iconSize: [30, 30],
+            className: 'custom-div-icon'
+        });
+
+        // Sample Data
+        const locations = [
+            {
+                lat: 43.2389,
+                lng: 76.8897,
+                type: 'meetup',
+                name: 'Central Park Meetup',
+                description: 'Weekly meetups every Saturday at 10 AM'
+            },
+            {
+                lat: 43.2220,
+                lng: 76.8515,
+                type: 'charging',
+                name: 'Mega Center Charging',
+                description: 'Free charging station available'
+            },
+            {
+                lat: 43.2558,
+                lng: 76.9296,
+                type: 'scenic',
+                name: 'Kok Tobe Route',
+                description: 'Beautiful mountain trail with city views'
+            },
+            {
+                lat: 43.2075,
+                lng: 76.8895,
+                type: 'charging',
+                name: 'Dostyk Plaza',
+                description: 'Indoor charging available'
+            },
+            {
+                lat: 43.2405,
+                lng: 76.9157,
+                type: 'meetup',
+                name: 'Panfilov Park',
+                description: 'Beginner-friendly practice area'
+            }
+        ];
+
+        // Add markers to map
+        const markers = locations.map(loc => {
+            let icon;
+            switch(loc.type) {
+                case 'charging': icon = chargingIcon; break;
+                case 'scenic': icon = scenicIcon; break;
+                case 'meetup': icon = meetupIcon; break;
+            }
+            
+            const marker = L.marker([loc.lat, loc.lng], { icon })
+                .addTo(map)
+                .bindPopup(`<strong>${loc.name}</strong><br>${loc.description}`);
+            
+            marker.category = loc.type;
+            return marker;
+        });
+
+        // Map Filter
+        const filterButtons = document.querySelectorAll('.map-filter');
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const filter = button.getAttribute('data-filter');
+                
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                markers.forEach(marker => {
+                    if (filter === 'all' || marker.category === filter) {
+                        marker.addTo(map);
+                    } else {
+                        marker.remove();
+                    }
+                });
+            });
+        });
+
+        // Add some dynamic elements
+        document.addEventListener('DOMContentLoaded', () => {
+            // Animate numbers in stats
+            const animateValue = (element, start, end, duration) => {
+                let startTimestamp = null;
+                const stephat</h4>
+                        <p>Member since 2023</p>
+                    </div>
+                </div>
+                <p>"The EUC Almaty community completely changed my commute! I can now get to work in half the time while enjoying the fresh air and beautiful views of our city."</p>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-header">
+                    <div class="avatar">M</div>
+                    <div>
+                        <h4>Marzhan</h4>
+                        <p>Member since 2024</p>
+                    </div>
+                </div>
+                <p>"As a beginner, I was nervous about learning, but the community was incredibly supportive. The weekly practice sessions helped me gain confidence quickly!"</p>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-header">
+                    <div class="avatar">D</div>
+                    <div>
+                        <h4>Dias</h4>
+                        <p>Member since 2023</p>
+                    </div>
+                </div>
+                <p>"Group rides are amazing! We've explored every corner of Almaty together. The map feature is super helpful for finding new routes and charging spots."</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>EUC Almaty</h3>
+                <p>Connecting electric unicycle enthusiasts across Kazakhstan</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-telegram"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                    <a href="#"><i class="fab fa-discord"></i></a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul style="list-style: none; padding: 0;">
+                    <li><a href="#map-section" style="color: var(--text-color); text-decoration: none;">Map</a></li>
+                    <li><a href="#learn" style="color: var(--text-color); text-decoration: none;">Learn to Ride</a></li>
+                    <li><a href="#community" style="color: var(--text-color); text-decoration: none;">Community</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Contact Us</h3>
+                <p>📧 info@eucalmaty.kz</p>
+                <p>📱 +7 777 123 4567</p>
+                <p>📍 Almaty, Kazakhstan</p>
+            </div>
+            <div class="footer-section">
+                <h3>Join Our Community</h3>
+                <p>Stay updated with the latest events and group rides!</p>
+                <div style="margin-top: 1rem;">
+                    <a href="#" class="cta-button cta-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                        <i class="fab fa-telegram"></i>
+                        Telegram Group
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Theme Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+        
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            body.setAttribute('data-theme', newTheme);
+            
+            const icon = themeToggle.querySelector('i');
+            icon.className = newTheme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
+            
+            localStorage.setItem('theme', newTheme);
+        });
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        body.setAttribute('data-theme', savedTheme);
+        themeToggle.querySelector('i').className = savedTheme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
+
+        // Mobile Menu Toggle
+        const mobileMenu = document.getElementById('mobileMenu');
+        const navLinks = document.getElementById('navLinks');
+
+        mobileMenu.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+        });
+
+        // Smooth Scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                    navLinks.classList.remove('active');
+                }
+            });
+        });
+
+        // Scroll Animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.scroll-animate').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Map Initialization (simulated)
+        const mapFilters = document.querySelectorAll('.map-filter');
+        let currentFilter = 'all';
+
+        mapFilters.forEach(filter => {
+            filter.addEventListener('click', () => {
+                mapFilters.forEach(f => f.classList.remove('active'));
+                filter.classList.add('active');
+                currentFilter = filter.dataset.filter;
+                updateMap(currentFilter);
+            });
+        });
+
+        function updateMap(filter) {
+            const map = document.getElementById('map');
+            map.style.opacity = '0.7';
+            setTimeout(() => {
+                map.style.opacity = '1';
+            }, 300);
+        }
+
+        // Simulate map content
+        const map = document.getElementById('map');
+        map.innerHTML = `
+            <div style="height: 100%; background: linear-gradient(135deg, #1a1a2e, #16213e); 
+                        display: flex; align-items: center; justify-content: center; 
+                        color: white; font-size: 1.2rem; text-align: center;">
+                <div>
+                    <i class="fas fa-map-marked-alt" style="font-size: 3rem; margin-bottom: 1rem; color: var(--accent-blue);"></i>
+                    <p>Interactive Map Loading...</p>
+                    <p style="font-size: 0.9rem; opacity: 0.7; margin-top: 0.5rem;">
+                        This would show charging stations, scenic routes, and meetup points
+                    </p>
+                </div>
+            </div>
+        `;
+
+        // Add some dynamic elements
+        const floatingIcons = document.querySelectorAll('.floating-icon');
+        floatingIcons.forEach((icon, index) => {
+            icon.style.animationDelay = `${index * 0.5}s`;
+        });
+
+        // Add parallax effect to hero
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const hero = document.querySelector('.hero');
+            hero.style.transform = `translateY(${scrolled * 0.5}px)`;
+        });
+
+        // Add interactive hover effects
+        const cards = document.querySelectorAll('.link-card, .testimonial-card');
+        cards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px) scale(1.02)';
+            });
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // Add loading animation
+        window.addEventListener('load', () => {
+            document.body.style.opacity = '1';
+        });
+
+        // Initialize everything
+        document.body.style.opacity = '0';
+        document.body.style.transition = 'opacity 0.5s ease';
+    </script>
+</body>
+</html>
